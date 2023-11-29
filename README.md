@@ -43,3 +43,6 @@ Additionally, the project explores blockchain oracle technology to address the h
 For any inquiries related to the Medicale project, please contact:
 
 - Mark Tharwat: [Eng.Mark.Tharwat@icloud.com]
+- Youssef Samir: [youssifsamir2682001@gmail.com]
+- Ezz Elsheikh: [geekswrath@outlook.com]
+- Youssef Ibrahim: [Yousefibrahim422@gmail.com]
