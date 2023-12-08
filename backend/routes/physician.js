@@ -1,43 +1,61 @@
+// Import necessary modules and dependencies
+const axios = require("axios");
+const express = require("express");
+const { currentTime, apiKeyMiddleware } = require("../shared/utility.js");
+const { encryptData, decryptData } = require("../shared/encryptJSON.js");
+
+// Set the port number for the Express server
 const port = 5080;
-const axios = require('axios');
-const express = require('express');
-const fs = require('fs');
 
+// Create an instance of the Express application
 const app = express();
+
+// Middleware to parse JSON in incoming requests
 app.use(express.json());
+app.use(express.text());
 
-const prescription = { name: '', disease: '', medicine: "" }
-
-
-app.post('/receive-json', async (req, res) => {
-    res.send('\nTransaction ended.');
-});
-
+// Start the Express server and listen on the specified port
 app.listen(port, () => {
-    console.log(`Physician Server is running on http://localhost:${port}`);
+  console.log(
+    "\n" +
+      currentTime() +
+      ": Physician Server is running on http://localhost:" +
+      port
+  );
 });
 
-app.post('/trigger', async (req, res) => {
+// Define a route for handling POST requests to issue a prescription
+app.post("/issuePrescription", apiKeyMiddleware, async (req, res) => {
+  // Log a message indicating that prescription issuance is in progress
+  console.log("\n" + currentTime() + ": Issuing prescription...");
 
-    prescription.name = req.body.name;
-    prescription.disease = req.body.disease;
-    prescription.medicine = req.body.medicine;
+  // Encrypt the request body using the encryptData function
+  const encrypted = encryptData(req.body);
 
+  // Make an asynchronous POST request to another server using Axios
+  await axios
+    .post("http://localhost:5020/initiateTransaction", encrypted, {
+      headers: {
+        "Content-type": "text/plain", // Set content type to text/plain
+        Authorization: process.env.API_SECRET_KEY, // Include API key for authorization
+      },
+    })
+    .then((response) => {
+      // Decrypt the data using the encryption key and IV from response headers
+      const decrypted = decryptData(response.data);
 
-    console.log('\nPrescription Issued');
-    await issuePrescription();
-    res.send('Prescription Sent.');
-})
+      // Log a success message and the response data
+      console.log(currentTime() + ": Prescription Issued.");
+      console.log(currentTime() + ": " + decrypted + ".");
 
-const issuePrescription = async () => {
-    await axios.post('http://localhost:5020/initiateTransaction', prescription)
-        .then(response => {
-            console.log(response.data);
-        })
-        .catch(error => {
-            console.error("Erorr", error.message);
-        })
-}
+      // Send a response to the client indicating successful prescription issuance
+      res.send("Prescription Issued.");
+    })
+    .catch((error) => {
+      // Log an error message if the POST request fails
+      console.error("\n" + currentTime() + ": Error --> ", error.message);
 
-
-
+      // Send a response to the client indicating failure to issue the prescription
+      res.send("Failed to issue prescription.");
+    });
+});

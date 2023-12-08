@@ -4,5 +4,7 @@
     "disease": "",
     "insurance": "",
     "medicine": "",
-    "pharmacy": ""
+    "pharmacy": "",
+    "bill": "",
+    "allowance": ""
 }
